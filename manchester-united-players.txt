@@ -1,0 +1,36 @@
+Manchester United squad (as of early June 2024):
+
+Goalkeepers:
+- André Onana
+- Altay Bayındır
+- Tom Heaton
+
+Defenders:
+- Diogo Dalot
+- Aaron Wan-Bissaka
+- Harry Maguire
+- Raphaël Varane
+- Lisandro Martínez
+- Victor Lindelöf
+- Jonny Evans
+- Luke Shaw
+- Tyrell Malacia
+
+Midfielders:
+- Bruno Fernandes
+- Mason Mount
+- Casemiro
+- Scott McTominay
+- Christian Eriksen
+- Kobbie Mainoo
+- Sofyan Amrabat
+
+Forwards:
+- Marcus Rashford
+- Rasmus Højlund
+- Alejandro Garnacho
+- Antony
+- Amad Diallo
+- Anthony Martial
+- Facundo Pellistri
+cat: manchester-united-players.txt: No such file or directory
