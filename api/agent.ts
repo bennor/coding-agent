@@ -1,5 +1,5 @@
 import z from "zod";
-import { codingAgent } from "../utils/agent";
+import { type CodingAgentArgs, codingAgent } from "../utils/agent";
 import { verifyToken } from "../utils/auth";
 
 const agentRequestSchema = z.object({
@@ -13,10 +13,15 @@ export async function POST(request: Request) {
     return new Response(null, { status: 401 });
   }
 
+  let args: CodingAgentArgs;
   try {
     const body = await request.json();
-    const args = agentRequestSchema.parse(body);
+    args = agentRequestSchema.parse(body);
+  } catch {
+    return new Response(null, { status: 400 });
+  }
 
+  try {
     const result = await codingAgent(args);
     return new Response(JSON.stringify({ result }), {
       headers: { "Content-Type": "application/json" },

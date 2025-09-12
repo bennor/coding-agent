@@ -9,7 +9,7 @@ import {
   readFile,
 } from "./sandbox";
 
-interface CodingAgentArgs {
+export interface CodingAgentArgs {
   prompt: string;
   repoUrl?: string;
   githubToken?: string;
