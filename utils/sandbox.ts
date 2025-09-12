@@ -184,6 +184,8 @@ export const createPR = async (
       throw new Error(result.message || "Failed to create PR");
     }
   } catch (error) {
-    return { error: error.message };
+    return {
+      error: error instanceof Error ? error.message : "Unknown error occurred",
+    };
   }
 };
