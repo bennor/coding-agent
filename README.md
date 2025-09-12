@@ -1,51 +1,46 @@
-# AI SDK 5 Coding Agent Starter Project
+# JS/TS Coding Agent via Vercel AI SDK
 
-Starter project for Vercel Ship "Building agents with the AI SDK". This coding agent is built with AI SDK 5, Vercel AI Gateway, and Vercel Sandbox. It can read and modify GitHub repositories.
+This repo provides a coding agent API powered by Vercel AI SDK 5, Vercel AI Gateway, and Vercel Sandbox. The agent can:
 
-## Setup
+- Read, list, and edit files in JavaScript/TypeScript repositories
+- Create Pull Requests on GitHub with its changes
+- Respond to freeform prompts to automate code modifications or PRs
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel-labs%2Fship-25-agents-workshop-starter&project-name=vercel-ship-25-coding-agent&repository-name=vercel-ship-25-coding-agent&demo-title=Ship%202025%20Agents%20Workshop%20Companion%20Site&demo-url=https%3A%2F%2Fship-25-agents-workshop.vercel.app%2Fdocs)
+## How It Works
 
-1. Install the Vercel CLI: `npm i -g vercel`
-1. Deploy this repo with the button above.
-1. Clone the new repo locally.
-1. Link to Vercel project: `vercel link`
-1. Pull environment variables: `vercel env pull` (may need team/project IDs too)
-1. Install dependencies: `pnpm install`
-1. Start dev server: `vercel dev`
+Send a POST request to `/api/agent` with a prompt and a GitHub repository URL. The agent checks out the repo in an isolated Vercel Sandbox, uses a local LLM to reason about your prompt, reads/edits code, and creates a PR with its changes if needed.
 
-## Environment Variables
-
-- `VERCEL_OIDC_TOKEN` - For AI Gateway and Sandbox (this will be automatically added when you run `vercel dev`)
-- `GITHUB_TOKEN` - GitHub personal access token
-
-### GitHub Personal Access Token
-
-To create a GitHub Personal Access Token (PAT):
-
-1. Go to https://github.com/settings/personal-access-tokens
-2. Click "Generate new token"
-3. Give it a descriptive name
-4. Set repository access to "All repositories"
-5. Add the following repository permissions:
-   - Issues: Read and write
-   - Pull requests: Read and write
-6. Click "Generate token"
-7. Copy the token immediately (you won't be able to see it again)
-8. Add it to your `.env.local` file as `GITHUB_TOKEN`
-
-## Usage
+## Example Usage
 
 ```bash
 curl -X POST https://your-deployment.vercel.app/api/agent \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "update readme to say hey were so back",
-    "repoUrl": "https://github.com/nicoalbanese/ai-sdk-langgraph/"
+    "prompt": "Replace lodash with native JS methods wherever possible",
+    "repoUrl": "https://github.com/your-username/some-repo"
   }'
 ```
 
-Parameters:
+**Parameters:**
+- `prompt` (string): What you want the agent to do
+- `repoUrl` (string): Public GitHub repo URL
+- `githubToken` (string, optional): Personal access token (if not set globally)
 
-- `prompt` - What you want the agent to do
-- `repoUrl` - GitHub repository URL
+## Setup
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel-labs%2Fship-25-agents-workshop-starter)
+
+1. Install Vercel CLI: `npm i -g vercel`
+2. Deploy this repo on Vercel or clone/fork it
+3. `vercel link` and `vercel env pull`
+4. Install dependencies: `pnpm install`
+5. Start locally: `vercel dev`
+
+### Required Environment Variables
+
+- `VERCEL_OIDC_TOKEN` — set automatically by Vercel
+- `GITHUB_TOKEN` — GitHub personal access token with repo permissions
+
+## About
+
+This agent is designed to accelerate JS/TS repo automation, migrations, and refactors with LLM help. Uses API tools for file read/edit/list and PR creation.
