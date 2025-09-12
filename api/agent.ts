@@ -1,5 +1,6 @@
 import z from "zod";
 import { codingAgent } from "../utils/agent";
+import { verifyToken } from "../utils/auth";
 
 const agentRequestSchema = z.object({
   prompt: z.string(),
@@ -8,6 +9,10 @@ const agentRequestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!verifyToken(request, process.env.AUTH_TOKEN)) {
+    return new Response(null, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const args = agentRequestSchema.parse(body);
