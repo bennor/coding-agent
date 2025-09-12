@@ -78,10 +78,18 @@ export const editFile = async (
   return { success: true };
 };
 
+interface GitHubUser {
+  login: string;
+  name?: string;
+  email?: string;
+}
+
 const validateGitHubToken = async (
   sandbox: Sandbox,
   githubToken: string
-): Promise<{ valid: boolean; error?: string }> => {
+): Promise<
+  { valid: true; user: Required<GitHubUser> } | { valid: false; error?: string }
+> => {
   try {
     const response = await sandbox.runCommand("curl", [
       "-s",
@@ -91,20 +99,35 @@ const validateGitHubToken = async (
       "Accept: application/vnd.github.v3+json",
       "https://api.github.com/user",
     ]);
-    
+
     const result = JSON.parse((await response.output()).toString());
-    
+
     if (result.login) {
-      return { valid: true };
+      return {
+        valid: true,
+        user: {
+          login: result.login,
+          name: result.name || result.login,
+          email: result.email || `${result.login}@users.noreply.github.com`,
+        },
+      };
     } else if (result.message) {
-      return { valid: false, error: `Token validation failed: ${result.message}` };
+      return {
+        valid: false,
+        error: `Token validation failed: ${result.message}`,
+      };
     } else {
-      return { valid: false, error: "Token validation failed: Invalid response" };
+      return {
+        valid: false,
+        error: "Token validation failed: Invalid response",
+      };
     }
   } catch (error) {
-    return { 
-      valid: false, 
-      error: `Token validation error: ${error instanceof Error ? error.message : "Unknown error"}` 
+    return {
+      valid: false,
+      error: `Token validation error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     };
   }
 };
@@ -124,20 +147,18 @@ export const createPR = async (
       throw new Error(tokenValidation.error || "Invalid GitHub token");
     }
 
+    const { user } = tokenValidation;
     const { title, body, branch } = prDetails;
     console.log(
       `Creating PR with title: ${title}, body: ${body}, branch: ${branch}`
     );
+    console.log(`Using GitHub user: ${user!.name} (${user!.login})`);
 
     const branchName = `${branch || `feature/ai-changes`}-${Date.now()}`;
 
-    // Setup git
-    await sandbox.runCommand("git", [
-      "config",
-      "user.email",
-      "ai-agent@example.com",
-    ]);
-    await sandbox.runCommand("git", ["config", "user.name", "AI Coding Agent"]);
+    // Setup git with actual user details
+    await sandbox.runCommand("git", ["config", "user.email", user.email]);
+    await sandbox.runCommand("git", ["config", "user.name", user.name]);
 
     const authUrl = repoUrl!.replace(
       "https://github.com/",
@@ -189,7 +210,12 @@ export const createPR = async (
       ]);
     }
 
-    await sandbox.runCommand("git", ["commit", "-m", title]);
+    const commitMessage = `${title}
+
+Co-authored-by: Coding Agent <noreply@${
+      process.env.VERCEL_PROJECT_PRODUCTION_URL || "example.com"
+    }>`;
+    await sandbox.runCommand("git", ["commit", "-m", commitMessage]);
     await sandbox.runCommand("git", ["push", "origin", branchName]);
 
     // Create PR via GitHub API
