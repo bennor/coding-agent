@@ -1,6 +1,6 @@
 export function verifyToken(
   request: { headers: Headers },
-  expectedToken: string | undefined
+  expectedToken: string | undefined,
 ): boolean {
   const token = request.headers
     .get("authorization")

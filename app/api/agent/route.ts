@@ -1,6 +1,8 @@
+import { checkBotId } from "botid/server";
+import { NextResponse } from "next/server";
 import z from "zod";
-import { type CodingAgentArgs, codingAgent } from "../utils/agent";
-import { verifyToken } from "../utils/auth";
+import { type CodingAgentArgs, codingAgent } from "../../../utils/agent";
+import { verifyToken } from "../../../utils/auth";
 
 const agentRequestSchema = z.object({
   prompt: z.string(),
@@ -9,8 +11,20 @@ const agentRequestSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  if (!verifyToken(request, process.env.AUTH_TOKEN)) {
-    return new Response(null, { status: 401 });
+  const isTokenValid = verifyToken(request, process.env.AUTH_TOKEN);
+
+  if (!isTokenValid) {
+    // Only perform bot check if auth token is invalid
+    const verification = await checkBotId();
+
+    if (verification.isBot) {
+      return NextResponse.json(
+        { error: "Bot detected. Access denied." },
+        { status: 403 },
+      );
+    }
+
+    // If not a bot, continue processing (don't return 401)
   }
 
   let args: CodingAgentArgs;

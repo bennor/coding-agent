@@ -26,7 +26,7 @@ export async function codingAgent({
     "repoUrl:",
     repoUrl,
     "githubToken:",
-    githubToken ? "provided" : "default"
+    githubToken ? "provided" : "default",
   );
   let sandbox: Sandbox | undefined;
 
@@ -65,7 +65,7 @@ export async function codingAgent({
             .string()
             .nullable()
             .describe(
-              "Optional relative path to list files from. Defaults to current directory if not provided."
+              "Optional relative path to list files from. Defaults to current directory if not provided.",
             ),
         }),
         execute: async ({ path }) => {
@@ -90,7 +90,7 @@ export async function codingAgent({
           old_str: z
             .string()
             .describe(
-              "Text to search for - must match exactly and must only have one match exactly"
+              "Text to search for - must match exactly and must only have one match exactly",
             ),
           new_str: z.string().describe("Text to replace old_str with"),
         }),
@@ -115,7 +115,7 @@ export async function codingAgent({
             .string()
             .nullable()
             .describe(
-              "The name of the branch to create (defaults to a generated name)"
+              "The name of the branch to create (defaults to a generated name)",
             ),
         }),
         execute: async ({ title, body, branch }) => {
