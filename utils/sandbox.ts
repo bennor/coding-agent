@@ -8,6 +8,8 @@ export const createSandbox = async (repoUrl: string) => {
     source: {
       url: repoUrl,
       type: "git",
+      username: "x-access-token",
+      password: process.env.GITHUB_TOKEN!,
     },
     resources: { vcpus: 2 },
     timeout: ms("5m"),
@@ -80,9 +82,11 @@ export const createPR = async (
       throw new Error("GITHUB_TOKEN environment variable is required");
 
     const { title, body, branch } = prDetails;
-    console.log(`Creating PR with title: ${title}, body: ${body}, branch: ${branch}`);
+    console.log(
+      `Creating PR with title: ${title}, body: ${body}, branch: ${branch}`,
+    );
 
-    const branchName = `${ branch || `feature/ai-changes` }-${Date.now()}`;
+    const branchName = `${branch || `feature/ai-changes`}-${Date.now()}`;
 
     // Setup git
     await sandbox.runCommand("git", [
@@ -146,7 +150,7 @@ export const createPR = async (
     await sandbox.runCommand("git", ["push", "origin", branchName]);
 
     // Create PR via GitHub API
-    const urlMatch = repoUrl!.match(/github\.com[\/:]([^\/]+)\/([^\/\.]+)/);
+    const urlMatch = repoUrl!.match(/github\.com[/:]([^/]+)\/([^/.]+)/);
     if (!urlMatch) throw new Error("Invalid GitHub repository URL");
 
     const [, owner, repo] = urlMatch;

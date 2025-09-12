@@ -1,11 +1,18 @@
+import z from "zod";
 import { codingAgent } from "../utils/agent";
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  const { prompt }: { prompt: string } = body;
+const agentRequestSchema = z.object({
+  prompt: z.string(),
+  repoUrl: z.string().url(),
+  githubToken: z.string().optional(),
+});
 
+export async function POST(request: Request) {
   try {
-    const result = await codingAgent(prompt);
+    const body = await request.json();
+    const args = agentRequestSchema.parse(body);
+
+    const result = await codingAgent(args);
     return new Response(JSON.stringify({ result }), {
       headers: { "Content-Type": "application/json" },
     });

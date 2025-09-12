@@ -4,15 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tsx utils/test.ts"
+    "test": "tsx utils/test.ts",
+    "lint": "biome check --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@biomejs/biome": "2.2.4",
     "@types/ms": "^2.1.0",
     "@types/node": "^22.15.30",
+    "add": "2.0.6",
     "dotenv": "^16.4.7",
+    "pnpm": "10.15.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
