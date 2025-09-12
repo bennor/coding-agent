@@ -81,3 +81,7 @@ curl -X POST https://your-deployment.vercel.app/api/agent \
 ---
 
 Licensed for educational or demonstration use.
+
+---
+
+_This pull request was created by Bennor._
