@@ -36,9 +36,46 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await codingAgent(args);
-    return new Response(JSON.stringify({ result }), {
-      headers: { "Content-Type": "application/json" },
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        const onProgress = (
+          message: string,
+          type: "thinking" | "result" | "complete",
+        ) => {
+          const data = { type, message, timestamp: Date.now() };
+          controller.enqueue(encoder.encode(`${JSON.stringify(data)}\n`));
+        };
+
+        codingAgent({ ...args, onProgress })
+          .then((result) => {
+            const data = {
+              type: "complete" as const,
+              result,
+              timestamp: Date.now(),
+            };
+            controller.enqueue(encoder.encode(`${JSON.stringify(data)}\n`));
+            controller.close();
+          })
+          .catch((error) => {
+            console.error(error);
+            const data = {
+              type: "error" as const,
+              message: error.message || "An error occurred",
+              timestamp: Date.now(),
+            };
+            controller.enqueue(encoder.encode(`${JSON.stringify(data)}\n`));
+            controller.close();
+          });
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
     });
   } catch (e) {
     console.error(e);

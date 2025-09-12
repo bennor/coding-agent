@@ -13,12 +13,17 @@ export interface CodingAgentArgs {
   prompt: string;
   repoUrl?: string;
   githubToken?: string;
+  onProgress?: (
+    message: string,
+    type: "thinking" | "result" | "complete",
+  ) => void;
 }
 
 export async function codingAgent({
   prompt,
   repoUrl,
   githubToken,
+  onProgress,
 }: CodingAgentArgs) {
   console.log(
     "prompt:",
@@ -30,12 +35,14 @@ export async function codingAgent({
   );
   let sandbox: Sandbox | undefined;
 
+  onProgress?.("Starting analysis of the repository...", "thinking");
+
   const result = await generateText({
     model: "openai/gpt-4.1",
     prompt,
     system:
       "You are a coding agent. You will be working with js/ts projects. Your responses must be concise. If you make changes to the codebase, be sure to run the create_pr tool once you are done.",
-    stopWhen: stepCountIs(10),
+    stopWhen: stepCountIs(20),
     tools: {
       read_file: tool({
         description:
@@ -47,7 +54,11 @@ export async function codingAgent({
         }),
         execute: async ({ path }) => {
           try {
-            if (!sandbox) sandbox = await createSandbox(repoUrl!);
+            if (!sandbox) {
+              onProgress?.("Setting up development environment...", "thinking");
+              sandbox = await createSandbox(repoUrl!);
+            }
+            onProgress?.(`Reading file: ${path}`, "thinking");
             const output = await readFile(sandbox, path);
             return { path, output };
           } catch (e) {
@@ -73,7 +84,14 @@ export async function codingAgent({
             return { error: "You cannot read the path: ", path };
           }
           try {
-            if (!sandbox) sandbox = await createSandbox(repoUrl!);
+            if (!sandbox) {
+              onProgress?.("Setting up development environment...", "thinking");
+              sandbox = await createSandbox(repoUrl!);
+            }
+            onProgress?.(
+              `Listing files in: ${path || "root directory"}`,
+              "thinking",
+            );
             const output = await listFiles(sandbox, path);
             return { path, output };
           } catch (e) {
@@ -96,7 +114,11 @@ export async function codingAgent({
         }),
         execute: async ({ path, old_str, new_str }) => {
           try {
-            if (!sandbox) sandbox = await createSandbox(repoUrl!);
+            if (!sandbox) {
+              onProgress?.("Setting up development environment...", "thinking");
+              sandbox = await createSandbox(repoUrl!);
+            }
+            onProgress?.(`Editing file: ${path}`, "thinking");
             await editFile(sandbox, path, old_str, new_str);
             return { success: true };
           } catch (e) {
@@ -119,6 +141,7 @@ export async function codingAgent({
             ),
         }),
         execute: async ({ title, body, branch }) => {
+          onProgress?.("Creating pull request...", "thinking");
           const { pr_url } = await createPR(sandbox!, repoUrl!, {
             title,
             body,
@@ -131,8 +154,10 @@ export async function codingAgent({
   });
 
   if (sandbox) {
+    onProgress?.("Cleaning up environment...", "thinking");
     await sandbox.stop();
   }
 
+  onProgress?.("Analysis complete!", "result");
   return { response: result.text };
 }
