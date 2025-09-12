@@ -3,13 +3,19 @@
 import { Sandbox } from "@vercel/sandbox";
 import ms from "ms";
 
-export const createSandbox = async (repoUrl: string) => {
+export interface GitHubArgs {
+  repoUrl: string;
+  githubToken?: string;
+}
+
+export const createSandbox = async ({ repoUrl, githubToken }: GitHubArgs) => {
   const sandbox = await Sandbox.create({
     source: {
       url: repoUrl,
       type: "git",
-      username: "x-access-token",
-      password: process.env.GITHUB_TOKEN!,
+      ...(githubToken
+        ? { username: "x-access-token", password: githubToken! }
+        : {}),
     },
     resources: { vcpus: 2 },
     timeout: ms("5m"),
@@ -41,7 +47,7 @@ export const editFile = async (
   sandbox: Sandbox,
   path: string,
   old_str: string,
-  new_str: string,
+  new_str: string
 ) => {
   console.log(`Editing file: ${path}`);
   // Read the file content using sandbox
@@ -72,18 +78,55 @@ export const editFile = async (
   return { success: true };
 };
 
+const validateGitHubToken = async (
+  sandbox: Sandbox,
+  githubToken: string
+): Promise<{ valid: boolean; error?: string }> => {
+  try {
+    const response = await sandbox.runCommand("curl", [
+      "-s",
+      "-H",
+      `Authorization: token ${githubToken}`,
+      "-H",
+      "Accept: application/vnd.github.v3+json",
+      "https://api.github.com/user",
+    ]);
+    
+    const result = JSON.parse((await response.output()).toString());
+    
+    if (result.login) {
+      return { valid: true };
+    } else if (result.message) {
+      return { valid: false, error: `Token validation failed: ${result.message}` };
+    } else {
+      return { valid: false, error: "Token validation failed: Invalid response" };
+    }
+  } catch (error) {
+    return { 
+      valid: false, 
+      error: `Token validation error: ${error instanceof Error ? error.message : "Unknown error"}` 
+    };
+  }
+};
+
 export const createPR = async (
   sandbox: Sandbox,
-  repoUrl: string,
-  prDetails: { title: string; body: string; branch: string | null },
+  { repoUrl, githubToken }: GitHubArgs,
+  prDetails: { title: string; body: string; branch: string | null }
 ) => {
   try {
-    if (!process.env.GITHUB_TOKEN)
-      throw new Error("GITHUB_TOKEN environment variable is required");
+    if (!githubToken)
+      throw new Error("GitHub token is required to create a PR");
+
+    // Validate GitHub token
+    const tokenValidation = await validateGitHubToken(sandbox, githubToken);
+    if (!tokenValidation.valid) {
+      throw new Error(tokenValidation.error || "Invalid GitHub token");
+    }
 
     const { title, body, branch } = prDetails;
     console.log(
-      `Creating PR with title: ${title}, body: ${body}, branch: ${branch}`,
+      `Creating PR with title: ${title}, body: ${body}, branch: ${branch}`
     );
 
     const branchName = `${branch || `feature/ai-changes`}-${Date.now()}`;
@@ -98,7 +141,7 @@ export const createPR = async (
 
     const authUrl = repoUrl!.replace(
       "https://github.com/",
-      `https://${process.env.GITHUB_TOKEN}@github.com/`,
+      `https://${githubToken}@github.com/`
     );
     await sandbox.runCommand("git", ["remote", "set-url", "origin", authUrl]);
 
@@ -161,7 +204,7 @@ export const createPR = async (
       "-X",
       "POST",
       "-H",
-      `Authorization: token ${process.env.GITHUB_TOKEN}`,
+      `Authorization: token ${githubToken}`,
       "-H",
       "Accept: application/vnd.github.v3+json",
       "-H",

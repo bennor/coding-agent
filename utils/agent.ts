@@ -11,11 +11,11 @@ import {
 
 export interface CodingAgentArgs {
   prompt: string;
-  repoUrl?: string;
+  repoUrl: string;
   githubToken?: string;
   onProgress?: (
     message: string,
-    type: "thinking" | "result" | "complete",
+    type: "thinking" | "result" | "complete"
   ) => void;
 }
 
@@ -31,8 +31,13 @@ export async function codingAgent({
     "repoUrl:",
     repoUrl,
     "githubToken:",
-    githubToken ? "provided" : "default",
+    githubToken ? "provided" : "default"
   );
+
+  const githubArgs = {
+    repoUrl,
+    githubToken: githubToken || process.env.GITHUB_TOKEN || undefined,
+  };
   let sandbox: Sandbox | undefined;
 
   onProgress?.("Starting analysis of the repository...", "thinking");
@@ -56,7 +61,7 @@ export async function codingAgent({
           try {
             if (!sandbox) {
               onProgress?.("Setting up development environment...", "thinking");
-              sandbox = await createSandbox(repoUrl!);
+              sandbox = await createSandbox(githubArgs);
             }
             onProgress?.(`Reading file: ${path}`, "thinking");
             const output = await readFile(sandbox, path);
@@ -76,7 +81,7 @@ export async function codingAgent({
             .string()
             .nullable()
             .describe(
-              "Optional relative path to list files from. Defaults to current directory if not provided.",
+              "Optional relative path to list files from. Defaults to current directory if not provided."
             ),
         }),
         execute: async ({ path }) => {
@@ -86,11 +91,11 @@ export async function codingAgent({
           try {
             if (!sandbox) {
               onProgress?.("Setting up development environment...", "thinking");
-              sandbox = await createSandbox(repoUrl!);
+              sandbox = await createSandbox(githubArgs);
             }
             onProgress?.(
               `Listing files in: ${path || "root directory"}`,
-              "thinking",
+              "thinking"
             );
             const output = await listFiles(sandbox, path);
             return { path, output };
@@ -108,7 +113,7 @@ export async function codingAgent({
           old_str: z
             .string()
             .describe(
-              "Text to search for - must match exactly and must only have one match exactly",
+              "Text to search for - must match exactly and must only have one match exactly"
             ),
           new_str: z.string().describe("Text to replace old_str with"),
         }),
@@ -116,7 +121,7 @@ export async function codingAgent({
           try {
             if (!sandbox) {
               onProgress?.("Setting up development environment...", "thinking");
-              sandbox = await createSandbox(repoUrl!);
+              sandbox = await createSandbox(githubArgs);
             }
             onProgress?.(`Editing file: ${path}`, "thinking");
             await editFile(sandbox, path, old_str, new_str);
@@ -137,17 +142,31 @@ export async function codingAgent({
             .string()
             .nullable()
             .describe(
-              "The name of the branch to create (defaults to a generated name)",
+              "The name of the branch to create (defaults to a generated name)"
             ),
         }),
         execute: async ({ title, body, branch }) => {
+          // Verify GitHub token is provided
+          if (!githubArgs.githubToken) {
+            return { 
+              error: "GitHub token is required to create a pull request. Please provide a valid GitHub token." 
+            };
+          }
+          
+          onProgress?.("Validating GitHub token...", "thinking");
           onProgress?.("Creating pull request...", "thinking");
-          const { pr_url } = await createPR(sandbox!, repoUrl!, {
+          
+          const result = await createPR(sandbox!, githubArgs, {
             title,
             body,
             branch,
           });
-          return { success: true, linkToPR: pr_url };
+          
+          if (result.error) {
+            return { error: result.error };
+          }
+          
+          return { success: true, linkToPR: result.pr_url };
         },
       }),
     },
