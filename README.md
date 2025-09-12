@@ -80,4 +80,4 @@ curl -X POST https://your-deployment.vercel.app/api/agent \
 
 ---
 
-Licensed for educational or demonstration use.
+Licensed under the MIT License. See [LICENSE](LICENSE) for details.
