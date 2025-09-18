@@ -2,7 +2,7 @@ import type { Sandbox } from "@vercel/sandbox";
 import { generateText, stepCountIs, tool } from "ai";
 import { z } from "zod/v4";
 import {
-  createPR,
+  createPR as createPROriginal,
   createSandbox,
   editFile,
   listFiles,
@@ -156,7 +156,7 @@ export async function codingAgent({
           onProgress?.("Validating GitHub token...", "thinking");
           onProgress?.("Creating pull request...", "thinking");
           
-          const result = await createPR(sandbox!, githubArgs, {
+          const result = await createPROriginal(sandbox!, githubArgs, {
             title,
             body,
             branch,

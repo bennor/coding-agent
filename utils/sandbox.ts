@@ -134,6 +134,20 @@ const validateGitHubToken = async (
 
 export const createPR = async (
   sandbox: Sandbox,
+  // Ensure pnpm install is run before any commit/PR
+  ...args: Parameters<typeof createPR>
+) => {
+  // Run pnpm install prior to PR logic
+  await sandbox.runCommand("pnpm", ["install"]);
+
+  // Continue with original logic
+  // @ts-expect-error: call original below
+  return await createPRCore(sandbox, ...args);
+};
+
+// The actual PR logic
+const createPRCore = async (
+  sandbox: Sandbox,
   { repoUrl, githubToken }: GitHubArgs,
   prDetails: { title: string; body: string; branch: string | null }
 ) => {
