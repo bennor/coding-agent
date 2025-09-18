@@ -71,7 +71,7 @@ export default function Home() {
             Code Analysis Tool
           </div>
           <h1 className="text-5xl font-bold tracking-tight mb-4 text-gray-900">
-            Code Agent
+            Coding Agent
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Point this at any GitHub repo and tell it what to do. It can analyze
