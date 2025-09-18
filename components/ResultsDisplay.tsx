@@ -7,27 +7,13 @@ interface ResultsDisplayProps {
 }
 
 export function ResultsDisplay({ result, thinkingLogs }: ResultsDisplayProps) {
-  const renderTextWithLinks = (text: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = text.split(urlRegex);
-
-    return parts.map((part, index) => {
-      if (part.match(urlRegex)) {
-        return (
-          <a
-            key={`${index}-${part}`}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline transition-colors"
-          >
-            {part}
-          </a>
-        );
-      }
-      return part;
-    });
+  // Renders markdown instead of plain text
+  const renderMarkdown = (markdown: string) => {
+    // Dynamically import react-markdown to avoid SSR issues
+    const ReactMarkdown = require('react-markdown').default;
+    return <ReactMarkdown>{markdown}</ReactMarkdown>;
   };
+
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg">
@@ -42,9 +28,9 @@ export function ResultsDisplay({ result, thinkingLogs }: ResultsDisplayProps) {
       </div>
       <div className="px-8 pb-8">
         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-          <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono overflow-x-auto text-gray-800">
-            {renderTextWithLinks(result)}
-          </pre>
+          <div className="prose max-w-none text-sm text-gray-800">
+            {renderMarkdown(result)}
+          </div>
         </div>
 
         <ThinkingLogs
