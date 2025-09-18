@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
 import { ThinkingLogs } from "./ThinkingLogs";
+import Markdown from 'react-markdown';
 
 interface ResultsDisplayProps {
   result: string;
@@ -42,9 +43,9 @@ export function ResultsDisplay({ result, thinkingLogs }: ResultsDisplayProps) {
       </div>
       <div className="px-8 pb-8">
         <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-          <pre className="whitespace-pre-wrap text-sm leading-relaxed font-mono overflow-x-auto text-gray-800">
-            {renderTextWithLinks(result)}
-          </pre>
+          <div className="prose max-w-none text-sm leading-relaxed overflow-x-auto text-gray-800 markdown-body" style={{fontFamily: 'inherit'}}>
+            <Markdown>{result}</Markdown>
+          </div>
         </div>
 
         <ThinkingLogs
