@@ -72,10 +72,10 @@ export function HomePage({ currentModel }: HomePageProps) {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-700">
             <Sparkles className="h-4 w-4" />
-            Code Analysis Tool
+            AI Cloud Demo
           </div>
           <h1 className="text-5xl font-bold tracking-tight mb-4 text-gray-900">
-            Code Agent
+            Coding Agent
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Point this at any GitHub repo and tell it what to do. It can analyze
