@@ -1,4 +1,4 @@
-import { Github, Loader2, Send, Settings } from "lucide-react";
+import { Github, Loader2, Send, Settings, Zap } from "lucide-react";
 import { useId } from "react";
 import type { RepositoryConfig } from "./RepositoryForm";
 
@@ -9,6 +9,7 @@ interface PromptFormProps {
   repositoryConfig: RepositoryConfig;
   onChangeRepository: () => void;
   isLoading: boolean;
+  currentModel: string;
 }
 
 export function PromptForm({
@@ -18,6 +19,7 @@ export function PromptForm({
   repositoryConfig,
   onChangeRepository,
   isLoading,
+  currentModel,
 }: PromptFormProps) {
   const promptId = useId();
 
@@ -57,6 +59,15 @@ export function PromptForm({
           >
             <Settings className="h-4 w-4" />
           </button>
+        </div>
+        <div className="flex items-center gap-2 text-base text-gray-600 mb-4">
+          <span>Model:</span>
+          <div className="bg-gray-100 px-2 py-1 rounded flex items-center gap-2">
+            <Zap className="h-4 w-4 text-gray-600" />
+            <span className="font-mono text-sm">
+              {currentModel}
+            </span>
+          </div>
         </div>
       </div>
       <div className="px-8 pb-8">
