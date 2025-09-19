@@ -166,6 +166,9 @@ export const createPR = async (
     );
     await sandbox.runCommand("git", ["remote", "set-url", "origin", authUrl]);
 
+    // Install dependencies
+    await sandbox.runCommand("pnpm", ["install"]);
+
     // Create branch and commit changes
     await sandbox.runCommand("git", ["checkout", "-b", branchName]);
     await sandbox.runCommand("git", [
