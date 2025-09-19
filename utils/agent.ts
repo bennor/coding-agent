@@ -1,6 +1,7 @@
 import type { Sandbox } from "@vercel/sandbox";
 import { generateText, stepCountIs, tool } from "ai";
 import { z } from "zod/v4";
+import { modelFlag } from "@/lib/flags";
 import {
   createPR,
   createSandbox,
@@ -40,10 +41,12 @@ export async function codingAgent({
   };
   let sandbox: Sandbox | undefined;
 
+  const model = await modelFlag();
+
   onProgress?.("Starting analysis of the repository...", "thinking");
 
   const result = await generateText({
-    model: "openai/gpt-4.1",
+    model,
     prompt,
     system:
       "You are a coding agent. You will be working with js/ts projects. Your responses must be concise. If you make changes to the codebase, be sure to run the create_pr tool once you are done.",
@@ -148,24 +151,25 @@ export async function codingAgent({
         execute: async ({ title, body, branch }) => {
           // Verify GitHub token is provided
           if (!githubArgs.githubToken) {
-            return { 
-              error: "GitHub token is required to create a pull request. Please provide a valid GitHub token." 
+            return {
+              error:
+                "GitHub token is required to create a pull request. Please provide a valid GitHub token.",
             };
           }
-          
+
           onProgress?.("Validating GitHub token...", "thinking");
           onProgress?.("Creating pull request...", "thinking");
-          
+
           const result = await createPR(sandbox!, githubArgs, {
             title,
             body,
             branch,
           });
-          
+
           if (result.error) {
             return { error: result.error };
           }
-          
+
           return { success: true, linkToPR: result.pr_url };
         },
       }),
