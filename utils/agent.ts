@@ -16,7 +16,7 @@ export interface CodingAgentArgs {
   githubToken?: string;
   onProgress?: (
     message: string,
-    type: "thinking" | "result" | "complete"
+    type: "thinking" | "result" | "complete",
   ) => void;
 }
 
@@ -32,7 +32,7 @@ export async function codingAgent({
     "repoUrl:",
     repoUrl,
     "githubToken:",
-    githubToken ? "provided" : "default"
+    githubToken ? "provided" : "default",
   );
 
   const githubArgs = {
@@ -45,6 +45,7 @@ export async function codingAgent({
 
   onProgress?.("Starting analysis of the repository...", "thinking");
 
+  let stepIndex = 0;
   const result = await generateText({
     model,
     prompt,
@@ -52,13 +53,17 @@ export async function codingAgent({
       "You are a coding agent. You will be working with js/ts projects. Your responses must be concise. If you make changes to the codebase, be sure to run the create_pr tool once you are done.",
     stopWhen: stepCountIs(20),
     onStepFinish: (step) => {
-      console.log(`=== LLM Step ${step.stepIndex + 1} ===`);
-      console.log('Text:', step.text);
-      console.log('Tool calls:', step.toolCalls);
-      console.log('Tool results:', step.toolResults);
-      console.log('Response messages:', step.response.messages);
-      console.log('Usage:', step.usage);
-      onProgress?.(`Step ${step.stepIndex + 1}: ${step.text || 'Tool execution'}`, "thinking");
+      stepIndex += 1;
+      console.log(`=== LLM Step ${stepIndex} ===`);
+      console.log("Text:", step.text);
+      console.log("Tool calls:", step.toolCalls);
+      console.log("Tool results:", step.toolResults);
+      console.log("Response messages:", step.response.messages);
+      console.log("Usage:", step.usage);
+      onProgress?.(
+        `Step ${stepIndex}: ${step.text || "Tool execution"}`,
+        "thinking",
+      );
     },
     tools: {
       read_file: tool({
@@ -93,7 +98,7 @@ export async function codingAgent({
             .string()
             .nullable()
             .describe(
-              "Optional relative path to list files from. Defaults to current directory if not provided."
+              "Optional relative path to list files from. Defaults to current directory if not provided.",
             ),
         }),
         execute: async ({ path }) => {
@@ -107,7 +112,7 @@ export async function codingAgent({
             }
             onProgress?.(
               `Listing files in: ${path || "root directory"}`,
-              "thinking"
+              "thinking",
             );
             const output = await listFiles(sandbox, path);
             return { path, output };
@@ -125,7 +130,7 @@ export async function codingAgent({
           old_str: z
             .string()
             .describe(
-              "Text to search for - must match exactly and must only have one match exactly"
+              "Text to search for - must match exactly and must only have one match exactly",
             ),
           new_str: z.string().describe("Text to replace old_str with"),
         }),
@@ -154,7 +159,7 @@ export async function codingAgent({
             .string()
             .nullable()
             .describe(
-              "The name of the branch to create (defaults to a generated name)"
+              "The name of the branch to create (defaults to a generated name)",
             ),
         }),
         execute: async ({ title, body, branch }) => {
@@ -185,11 +190,11 @@ export async function codingAgent({
     },
   });
 
-  console.log('=== Final LLM Result ===');
-  console.log('Final text:', result.text);
-  console.log('Steps count:', result.steps?.length || 0);
-  console.log('Total usage:', result.usage);
-  console.log('Finish reason:', result.finishReason);
+  console.log("=== Final LLM Result ===");
+  console.log("Final text:", result.text);
+  console.log("Steps count:", result.steps?.length || 0);
+  console.log("Total usage:", result.usage);
+  console.log("Finish reason:", result.finishReason);
 
   if (sandbox) {
     onProgress?.("Cleaning up environment...", "thinking");
