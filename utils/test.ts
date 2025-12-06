@@ -3,8 +3,7 @@ import { codingAgent } from "./agent";
 
 dotenv.config({ path: ".env.local" });
 codingAgent({
-  prompt:
-    "Add a contributing section to the readme of this project. Use standard format.",
+  prompt: "Show me what this repo does without reading the README.",
   repoUrl: "https://github.com/bennor/coding-agent",
 })
   .then(console.log)

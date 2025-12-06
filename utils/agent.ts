@@ -51,6 +51,15 @@ export async function codingAgent({
     system:
       "You are a coding agent. You will be working with js/ts projects. Your responses must be concise. If you make changes to the codebase, be sure to run the create_pr tool once you are done.",
     stopWhen: stepCountIs(20),
+    onStepFinish: (step) => {
+      console.log(`=== LLM Step ${step.stepIndex + 1} ===`);
+      console.log('Text:', step.text);
+      console.log('Tool calls:', step.toolCalls);
+      console.log('Tool results:', step.toolResults);
+      console.log('Response messages:', step.response.messages);
+      console.log('Usage:', step.usage);
+      onProgress?.(`Step ${step.stepIndex + 1}: ${step.text || 'Tool execution'}`, "thinking");
+    },
     tools: {
       read_file: tool({
         description:
@@ -175,6 +184,12 @@ export async function codingAgent({
       }),
     },
   });
+
+  console.log('=== Final LLM Result ===');
+  console.log('Final text:', result.text);
+  console.log('Steps count:', result.steps?.length || 0);
+  console.log('Total usage:', result.usage);
+  console.log('Finish reason:', result.finishReason);
 
   if (sandbox) {
     onProgress?.("Cleaning up environment...", "thinking");
